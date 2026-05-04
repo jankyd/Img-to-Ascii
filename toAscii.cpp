@@ -5,7 +5,7 @@
 
 using namespace cv;
 // Ascii list - High to low value
-std::string gscale = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
+std::string asciiScale = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
 
 /**
  * Function to convert the average 'value' (brightness) of a
@@ -56,9 +56,19 @@ int main(int argc, char* argv[]) {
         }
         Mat grayScale;
         cvtColor(img, grayScale, COLOR_BGR2GRAY);
-        
+        // Read image line by line (scale x scale sized blocks)
+        // Then print out each line
+        for (int i = 0; i < grayScale.rows; i+=scale) {
+            std::string text = "";
+            for (int j = 0; j < grayScale.cols; j+=scale) {
+                int pixel = avgValue(grayScale, i, j, scale);
+                // Get the pixel based on the ascii scale
+                text += asciiScale[ceil((asciiScale.length() - 1) * pixel /255)];
+                text += asciiScale[ceil((asciiScale.length() - 1) * pixel /255)];
+            }
 
-
+            std::cout << text << std::endl;
+        }
 
     } 
     return 0;
