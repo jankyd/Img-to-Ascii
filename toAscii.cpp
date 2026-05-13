@@ -33,22 +33,29 @@ int avgValue(Mat image, int row, int col, int scale) {
 
 
 int main(int argc, char* argv[]) {
-    if (argc <= 1 || argc >= 4) {
-        std::cout << "Usage: toAscii [Image file] [Pixel Scale] OR toAscii -h" << std::endl;
+    if (argc <= 1 || argc >= 5) {
+        std::cout << "Usage: toAscii [Processing Type] [Image file] [Pixel Scale] OR toAscii -h" << std::endl;
+        return 0;
     }
     
     else {
-        std::string fileName = argv[1];
-        if (fileName == "-h" || fileName == "-H") {
-            std::cout << "toAscii: A program to convert an image file to Ascii Art." << std::endl;
-            std::cout << "Usage: toAscii [Image File Path] [Pixel Scale]" << std::endl;
-            std::cout << "Where: \n[Image File Path] == The path to your Image" << std::endl;
+        std::string callOption = argv[1];
+        if (callOption == "-h" || callOption == "-H") {
+            std::cout << "\ntoAscii: A program to convert an image file to Ascii Art." << std::endl;
+            std::cout << "Usage: toAscii [Proccessing Type] [Image file] [Pixel Scale]" << std::endl;
+            std::cout << "\nWhere:\n[Processing Type] == Either -v OR -e. -v uses Value (brightness) based processing, and -e uses edge based processing" << std::endl;
+            std::cout << "  Value based processing is low-fidelity but low-intensity. Edge based is higher fidelity but more resource intensive" << std::endl;
+            std::cout << "[Image File Path] == The path to your Image" << std::endl;
             std::cout << "[Pixel Scale] == The square amount of pixels to convert to 1 ascii char" << std::endl;
             std::cout << "  (IE scale = 2 means 2x2 pixels converted to 1 Ascii char)" << std::endl;
             return 0;
         }
-        int scale =atoi(argv[2]);
-        Mat img = imread(fileName);
+        else if (argc <= 3) {
+            std::cout << "Usage: toAscii [Processing Type] [Image file] [Pixel Scale] OR toAscii -h" << std::endl;
+            return 0;
+        }
+        int scale = atoi(argv[3]);
+        Mat img = imread(argv[2]);
         // empty image handling
         if (img.empty()) {
             std::cout << "ERROR: Problem opening file. Check path and try again." << std::endl;
