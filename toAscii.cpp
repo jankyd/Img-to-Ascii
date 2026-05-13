@@ -56,6 +56,10 @@ int main(int argc, char* argv[]) {
         }
         Mat grayScale;
         cvtColor(img, grayScale, COLOR_BGR2GRAY);
+        
+        // Enhance contrast using histogram equalization
+        equalizeHist(grayScale, grayScale);
+        
         // Read image line by line (scale x scale sized blocks)
         // Then print out each line
         for (int i = 0; i < grayScale.rows; i+=scale) {

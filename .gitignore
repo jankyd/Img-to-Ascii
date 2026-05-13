@@ -71,6 +71,7 @@ Testing/
 # image files
 *.jpg
 *.png
+img.txt
 
 # vscode stuff
 .vscode/
