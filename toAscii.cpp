@@ -51,6 +51,50 @@ void valuePrint(Mat image, int scale) {
     return;
 }
 
+/**
+ * Takes a brightness value and converts it to an ascii character based on the following high to low scale:
+ * $@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. 
+ */
+char valueToChar(int value) {
+    return asciiScale[ceil((asciiScale.length() - 1) * value /255)];
+}
+
+void edgeProcessing(Mat image, int scale) {
+    Mat edgeImg;
+    GaussianBlur(image, edgeImg, Size(3,3), 0);
+    Mat edgeX, edgeY;
+    // Get the edge function data
+    Sobel(edgeImg, edgeX, CV_32F, 1, 0, 3);
+    Sobel(edgeImg, edgeY, CV_32F, 0, 1, 3);
+    // create the polar coordinates for the edge function data (magArray == magnintude, angleArray == angle)
+    Mat magArray, angleArray;
+    cartToPolar(edgeX, edgeY, magArray, angleArray, true); // NOTE: the last true makes it degree based, not radians (0-360)
+    // Get the total average magnitude
+    Scalar avgMag = mean(magArray);
+    float magThreshold = avgMag[0] * 1.5; // NOTE: Adjust as needed for results
+    
+    for (int i = 0; i < image.rows; i+=scale) {
+        std::string text = "";
+        for (int j = 0; j < image.cols; j+=scale) {
+            Rect block(i, j, scale, scale);
+            Mat magRect = magArray(block);
+            Mat angRect = angleArray(block);
+
+            float meanMag = mean(magRect)[0];
+            float meanAng = mean(angRect)[0];
+            // If magnatude is greater than the threshhold, do edge process
+            if (meanMag >= magThreshold) {
+
+            }
+            // else do value based
+            else {
+                text += valueToChar(avgValue(image, i, j, scale)); //NOTE: may have to do twice for aspect reasons?
+            }
+        }
+    }
+
+}
+
 
 int main(int argc, char* argv[]) {
     if (argc <= 1 || argc >= 5) {
@@ -85,8 +129,8 @@ int main(int argc, char* argv[]) {
         cvtColor(img, grayScale, COLOR_BGR2GRAY);
         
         // Enhance contrast using histogram equalization
-        equalizeHist(grayScale, grayScale);
         if (callOption == "-v" || callOption == "-V") {
+            equalizeHist(grayScale, grayScale);
             valuePrint(grayScale, scale);
         }
         else if (callOption == "-e" || callOption == "-E") {
