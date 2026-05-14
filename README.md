@@ -31,4 +31,4 @@ Currently a command line program while I implement more changes. Makefile is cre
 `[Scale]` - The square size of pixels to convert to 1 ascii character. For example, if a scale of 2 is chosen, then the image value will be calculated in 2x2 squares of pixels, so 4 pixels will be converted to 1 ascii character.
 
 ## Limitations
-Struggles with high-fidelity images. Best used for high contrast 
+Struggles with high-fidelity images. Best used with high contrast images.
