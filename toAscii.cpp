@@ -18,10 +18,10 @@ int avgValue(Mat image, int row, int col, int scale) {
     int sum = 0;
     int pixelCnt = 0;
     int r = row;
-    int c = col;
-
-    while (r <= row + scale && r < image.rows) {
-        while (c  <= col + scale && c < image.cols) {
+    
+    while (r <= row + scale - 1 && r < image.rows) {
+        int c = col;
+        while (c <= col + scale - 1 && c < image.cols) {
             sum +=(int)image.at<uchar>(r,c);
             pixelCnt++;
             c++;
@@ -42,8 +42,8 @@ void valuePrint(Mat image, int scale) {
         for (int j = 0; j < image.cols; j+=scale) {
             int pixel = avgValue(image, i, j, scale);
             // Get the pixel based on the ascii scale
-            text += asciiScale[ceil((asciiScale.length() - 1) * pixel /255)];
-            text += asciiScale[ceil((asciiScale.length() - 1) * pixel /255)];
+            text += asciiScale[ceil((asciiScale.length() - 1) * pixel /255.0)];
+            text += asciiScale[ceil((asciiScale.length() - 1) * pixel /255.0)];
         }
 
         std::cout << text << std::endl;
@@ -56,9 +56,30 @@ void valuePrint(Mat image, int scale) {
  * $@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. 
  */
 char valueToChar(int value) {
-    return asciiScale[ceil((asciiScale.length() - 1) * value /255)];
+    return asciiScale[ceil((asciiScale.length() - 1) * value /255.0)];
 }
 
+/**
+ * Converts an angle value to a representative ascii character (IE | for 0 degrees)
+ */
+char angleToChar(float meanAngle) {
+    //NOTE: No switch blocks with floats :(
+    if (meanAngle >=180) meanAngle -= 180;
+
+    if (meanAngle < 22.5 || meanAngle > 157.5) return '|';
+    else if (meanAngle >= 22.5 && meanAngle < 67.5) return '/';
+    else if (meanAngle >= 67.5 && meanAngle < 112.5) return '-';
+    else if (meanAngle >= 112.5 && meanAngle <= 157.5) return '\\';
+    else return '.'; // Emergency fallback
+}
+
+/**
+ * Function used to build an ascii representation using edge detection. Makes edges more defined,
+ * then uses value-based processing to shade.
+ * 
+ * @param image The image to process (MUST DO PREPROCESSING TO GRAYSCALE FIRST!)
+ * @param scale The square scale of pixels to process at a time
+ */
 void edgeProcessing(Mat image, int scale) {
     Mat edgeImg;
     GaussianBlur(image, edgeImg, Size(3,3), 0);
@@ -71,12 +92,12 @@ void edgeProcessing(Mat image, int scale) {
     cartToPolar(edgeX, edgeY, magArray, angleArray, true); // NOTE: the last true makes it degree based, not radians (0-360)
     // Get the total average magnitude
     Scalar avgMag = mean(magArray);
-    float magThreshold = avgMag[0] * 1.5; // NOTE: Adjust as needed for results
+    float magThreshold = avgMag[0] * 2; // NOTE: Adjust as needed for results
     
-    for (int i = 0; i < image.rows; i+=scale) {
+    for (int i = 0; i < image.rows - (scale*2); i+=(scale*2)) {
         std::string text = "";
-        for (int j = 0; j < image.cols; j+=scale) {
-            Rect block(i, j, scale, scale);
+        for (int j = 0; j < image.cols - scale; j+=scale) {
+            Rect block(j, i, scale, (scale*2));
             Mat magRect = magArray(block);
             Mat angRect = angleArray(block);
 
@@ -84,13 +105,14 @@ void edgeProcessing(Mat image, int scale) {
             float meanAng = mean(angRect)[0];
             // If magnatude is greater than the threshhold, do edge process
             if (meanMag >= magThreshold) {
-
+                text += angleToChar(meanAng);
             }
             // else do value based
             else {
-                text += valueToChar(avgValue(image, i, j, scale)); //NOTE: may have to do twice for aspect reasons?
+                text += valueToChar(avgValue(image, i, j, scale));
             }
         }
+    std::cout << text << "\n";
     }
 
 }
@@ -134,7 +156,7 @@ int main(int argc, char* argv[]) {
             valuePrint(grayScale, scale);
         }
         else if (callOption == "-e" || callOption == "-E") {
-            //TODO: edgeProcessing();
+            edgeProcessing(grayScale, scale);
         }
         else {
             std::cout << "ERROR: Unknown processing option. Use ToAscii -h for help." << std::endl;
