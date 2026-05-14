@@ -31,6 +31,26 @@ int avgValue(Mat image, int row, int col, int scale) {
     return sum / pixelCnt;
 }
 
+/**
+ * Prints out the ascii art line by line using value based processing
+ */
+void valuePrint(Mat image, int scale) {
+    // Read image line by line (scale x scale sized blocks)
+    // Then print out each line
+    for (int i = 0; i < image.rows; i+=scale) {
+        std::string text = "";
+        for (int j = 0; j < image.cols; j+=scale) {
+            int pixel = avgValue(image, i, j, scale);
+            // Get the pixel based on the ascii scale
+            text += asciiScale[ceil((asciiScale.length() - 1) * pixel /255)];
+            text += asciiScale[ceil((asciiScale.length() - 1) * pixel /255)];
+        }
+
+        std::cout << text << std::endl;
+    }
+    return;
+}
+
 
 int main(int argc, char* argv[]) {
     if (argc <= 1 || argc >= 5) {
@@ -66,19 +86,15 @@ int main(int argc, char* argv[]) {
         
         // Enhance contrast using histogram equalization
         equalizeHist(grayScale, grayScale);
-        
-        // Read image line by line (scale x scale sized blocks)
-        // Then print out each line
-        for (int i = 0; i < grayScale.rows; i+=scale) {
-            std::string text = "";
-            for (int j = 0; j < grayScale.cols; j+=scale) {
-                int pixel = avgValue(grayScale, i, j, scale);
-                // Get the pixel based on the ascii scale
-                text += asciiScale[ceil((asciiScale.length() - 1) * pixel /255)];
-                text += asciiScale[ceil((asciiScale.length() - 1) * pixel /255)];
-            }
-
-            std::cout << text << std::endl;
+        if (callOption == "-v" || callOption == "-V") {
+            valuePrint(grayScale, scale);
+        }
+        else if (callOption == "-e" || callOption == "-E") {
+            //TODO: edgeProcessing();
+        }
+        else {
+            std::cout << "ERROR: Unknown processing option. Use ToAscii -h for help." << std::endl;
+            return 1;
         }
 
     } 
